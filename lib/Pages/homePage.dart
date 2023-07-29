@@ -13,7 +13,7 @@ class HomePage extends ConsumerWidget {
     final getIt = GetIt.instance;
     ConfigModel model = getIt.get();
     return Scaffold(
-      appBar: AppBar(title: Text(model.BASE_API_URL)),
+      appBar: AppBar(title: Text('TEst')),
     );
   }
 }

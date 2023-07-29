@@ -10,7 +10,11 @@ void main() {
         key: UniqueKey(),
         onInitializationComplete: () {
           // After Complete Run the Main App
-          runApp(ProviderScope(child: const MyApp()));
+          runApp(
+            const ProviderScope(
+              child: MyApp(),
+            ),
+          );
         }),
   );
 }
