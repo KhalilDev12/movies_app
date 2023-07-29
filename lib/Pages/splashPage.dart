@@ -22,6 +22,7 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+
   Future<void> _setup(BuildContext context) async {
     final getIt = GetIt.instance;
     final configFile = await rootBundle
