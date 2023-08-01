@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:movies_app/Models/categoryModel.dart';
+import 'package:movies_app/Models/movieModel.dart';
+import 'package:movies_app/Widgets/movieTile.dart';
 
 class HomePage extends ConsumerWidget {
   late double _deviceHeight, _deviceWidth;
@@ -18,6 +20,8 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildUI() {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      // use it if u get overflow pixels when the keyboard appears
       backgroundColor: Colors.black,
       body: Container(
         height: _deviceHeight,
@@ -48,7 +52,7 @@ class HomePage extends ConsumerWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
         child: Container(
-          color: Colors.black.withOpacity(0.2),
+          color: Colors.black.withOpacity(0.4),
         ),
       ),
     );
@@ -57,14 +61,19 @@ class HomePage extends ConsumerWidget {
   Widget _foregroundWidgets() {
     return SafeArea(
       child: Container(
-        padding: EdgeInsets.fromLTRB(
-            _deviceWidth * 0.05, _deviceHeight * 0.02, _deviceWidth * 0.05, 0),
+        width: _deviceWidth * 0.88,
+        padding: EdgeInsets.symmetric(vertical: _deviceHeight * 0.02),
         child: Column(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _topBarWidget(),
+            Container(
+              height: _deviceHeight * 0.84,
+              padding: EdgeInsets.only(top: _deviceHeight * 0.02),
+              child: _moviesListViewWidget(),
+            ),
           ],
         ),
       ),
@@ -81,7 +90,6 @@ class HomePage extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _searchFieldWidget(),
           _categorySelectionWidget(),
@@ -94,7 +102,6 @@ class HomePage extends ConsumerWidget {
     const border = InputBorder.none; // remove border from EditText
     return Container(
       width: _deviceWidth * 0.5,
-      height: _deviceHeight * 0.05,
       child: TextField(
         controller: _searchTextFieldController,
         onSubmitted: (input) {},
@@ -117,7 +124,7 @@ class HomePage extends ConsumerWidget {
   Widget _categorySelectionWidget() {
     return DropdownButton(
       dropdownColor: Colors.black38,
-      value: CategoryModel.none,
+      value: CategoryModel.popular,
       icon: const Icon(Icons.menu, color: Colors.white24),
       underline: Container(),
       items: [
@@ -139,5 +146,43 @@ class HomePage extends ConsumerWidget {
       ],
       onChanged: (value) {},
     );
+  }
+
+  Widget _moviesListViewWidget() {
+    final List<MovieModel> movies = [];
+    for (var i = 0; i < 20; i++) {
+      movies.add(MovieModel(
+          name: "Barbie",
+          language: "en",
+          isAdult: false,
+          description:
+              "Barbie and Ken are having the time of their lives in the colorful and seemingly perfect world of Barbie Land. However, when they get a chance to go to the real world, they soon discover the joys and perils of living among humans.",
+          posterPath: "/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg",
+          backgroundPath: "/tTfnd2VrlaZJSBD9HUbtSF3CqPJ.jpg",
+          rating: 7.5,
+          releaseDate: "2023-07-19"));
+    }
+    if (movies.isNotEmpty) {
+      return ListView.builder(
+        itemCount: movies.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.symmetric(
+                vertical: _deviceHeight * 0.01, horizontal: 0),
+            child: GestureDetector(
+              onTap: () {},
+              child: MovieTile(
+                  movie: movies[index],
+                  height: _deviceHeight * 0.2,
+                  width: _deviceWidth * 0.88),
+            ),
+          );
+        },
+      );
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(backgroundColor: Colors.white),
+      );
+    }
   }
 }
