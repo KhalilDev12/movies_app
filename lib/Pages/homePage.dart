@@ -1,18 +1,27 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movies_app/Controllers/mainPageDataController.dart';
 import 'package:movies_app/Models/categoryModel.dart';
+import 'package:movies_app/Models/mainPageData.dart';
 import 'package:movies_app/Models/movieModel.dart';
 import 'package:movies_app/Widgets/movieTile.dart';
 
-class HomePage extends ConsumerWidget {
+// Declare global variable for the provider
+final mainPageDataControllerProvider =
+    StateNotifierProvider<MainPageDataController, MainPageData>(
+  (ref) {
+    return MainPageDataController();
+  },
+);
+
+class HomePage extends StatelessWidget {
   late double _deviceHeight, _deviceWidth;
   final TextEditingController _searchTextFieldController =
       TextEditingController();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     _deviceHeight = MediaQuery.of(context).size.height;
     _deviceWidth = MediaQuery.of(context).size.width;
     return _buildUI();
@@ -149,40 +158,33 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _moviesListViewWidget() {
-    final List<MovieModel> movies = [];
-    for (var i = 0; i < 20; i++) {
-      movies.add(MovieModel(
-          name: "Barbie",
-          language: "en",
-          isAdult: false,
-          description:
-              "Barbie and Ken are having the time of their lives in the colorful and seemingly perfect world of Barbie Land. However, when they get a chance to go to the real world, they soon discover the joys and perils of living among humans.",
-          posterPath: "/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg",
-          backgroundPath: "/tTfnd2VrlaZJSBD9HUbtSF3CqPJ.jpg",
-          rating: 7.5,
-          releaseDate: "2023-07-19"));
-    }
-    if (movies.isNotEmpty) {
-      return ListView.builder(
-        itemCount: movies.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.symmetric(
-                vertical: _deviceHeight * 0.01, horizontal: 0),
-            child: GestureDetector(
-              onTap: () {},
-              child: MovieTile(
-                  movie: movies[index],
-                  height: _deviceHeight * 0.2,
-                  width: _deviceWidth * 0.88),
-            ),
+    return Consumer(
+      builder: (context, ref, child) {
+        final List<MovieModel> movies =
+            ref.watch(mainPageDataControllerProvider).movies!;
+        if (movies.isNotEmpty) {
+          return ListView.builder(
+            itemCount: movies.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: _deviceHeight * 0.01, horizontal: 0),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: MovieTile(
+                      movie: movies[index],
+                      height: _deviceHeight * 0.2,
+                      width: _deviceWidth * 0.88),
+                ),
+              );
+            },
           );
-        },
-      );
-    } else {
-      return const Center(
-        child: CircularProgressIndicator(backgroundColor: Colors.white),
-      );
-    }
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(backgroundColor: Colors.white),
+          );
+        }
+      },
+    );
   }
 }

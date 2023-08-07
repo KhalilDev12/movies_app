@@ -18,15 +18,13 @@ class HttpService {
 
   Future<Response> get(String path, {Map<String, dynamic>? query}) async {
     try {
-      String url = "$_baseUrl$path";   // Create the url
+      String url = "$_baseUrl$path"; // Create the url
       Map<String, dynamic> _query = {"api_key": _apiKey, "language": "en-US"};
-
       // Check if the user ask for specific query
       if (query != null) {
         _query.addAll(query);
       }
       return await dio.get(url, queryParameters: _query);
-
     } on DioException catch (e) {
       print('Unable to perform get request');
       print("DioError : $e");

@@ -84,7 +84,7 @@ class MovieTile extends StatelessWidget {
             Container(
               child: Text(
                 movie.description,
-                maxLines: 9,
+                maxLines: 6,
                 textAlign: TextAlign.justify,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
