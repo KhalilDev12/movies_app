@@ -28,6 +28,8 @@ class HttpService {
     } on DioException catch (e) {
       print('Unable to perform get request');
       print("DioError : $e");
+      print('Error status: ${e.response!.statusCode}');
+      print('Error message: ${e.response!.data}');
       rethrow; // use it to avoid error message for returning null in the function
     }
   }

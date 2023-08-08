@@ -29,8 +29,8 @@ class MovieModel {
       language: json["original_language"],
       isAdult: json["adult"],
       description: json["overview"],
-      posterPath: json["poster_path"],
-      backgroundPath: json["backdrop_path"],
+      posterPath: json["poster_path"] ?? '',
+      backgroundPath: json["backdrop_path"] ?? '',
       rating: json["vote_average"],
       releaseDate: json["release_date"],
     );

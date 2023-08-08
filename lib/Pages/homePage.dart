@@ -15,15 +15,22 @@ final mainPageDataControllerProvider =
   },
 );
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   late double _deviceHeight, _deviceWidth;
+  late MainPageDataController _mainPageDataController;
+  late MainPageData _mainPageData;
   final TextEditingController _searchTextFieldController =
       TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     _deviceHeight = MediaQuery.of(context).size.height;
     _deviceWidth = MediaQuery.of(context).size.width;
+    // Get instance of MainPageDataController
+    _mainPageDataController =
+        ref.watch(mainPageDataControllerProvider.notifier);
+    // Get instance of MainPageData
+    _mainPageData = ref.watch(mainPageDataControllerProvider);
     return _buildUI();
   }
 
@@ -113,7 +120,12 @@ class HomePage extends StatelessWidget {
       width: _deviceWidth * 0.5,
       child: TextField(
         controller: _searchTextFieldController,
-        onSubmitted: (input) {},
+        onChanged: (value) {
+          _mainPageDataController.updateTextSearch(value);
+        },
+        onSubmitted: (input) {
+          _mainPageDataController.updateTextSearch(input);
+        },
         style: const TextStyle(color: Colors.white),
         decoration: const InputDecoration(
             focusedBorder: border,
@@ -132,59 +144,55 @@ class HomePage extends StatelessWidget {
 
   Widget _categorySelectionWidget() {
     return DropdownButton(
-      dropdownColor: Colors.black38,
-      value: CategoryModel.popular,
-      icon: const Icon(Icons.menu, color: Colors.white24),
+      dropdownColor: Colors.black87,
+      value: _mainPageData.searchCategory,
+      icon: const Icon(Icons.menu, color: Colors.white38),
       underline: Container(),
       items: [
         DropdownMenuItem(
-          child:
-              Text(CategoryModel.none, style: TextStyle(color: Colors.white24)),
+          child: Text(CategoryModel.none),
           value: CategoryModel.none,
         ),
         DropdownMenuItem(
           child: Text(CategoryModel.popular,
-              style: TextStyle(color: Colors.white24)),
+              style: TextStyle(color: Colors.white38)),
           value: CategoryModel.popular,
         ),
         DropdownMenuItem(
           child: Text(CategoryModel.upcoming,
-              style: TextStyle(color: Colors.white24)),
+              style: TextStyle(color: Colors.white38)),
           value: CategoryModel.upcoming,
         ),
       ],
-      onChanged: (value) {},
+      onChanged: (value) => value.toString().isNotEmpty
+          ? _mainPageDataController.updateSearchCategory(value.toString())
+          : null,
     );
   }
 
   Widget _moviesListViewWidget() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final List<MovieModel> movies =
-            ref.watch(mainPageDataControllerProvider).movies!;
-        if (movies.isNotEmpty) {
-          return ListView.builder(
-            itemCount: movies.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.symmetric(
-                    vertical: _deviceHeight * 0.01, horizontal: 0),
-                child: GestureDetector(
-                  onTap: () {},
-                  child: MovieTile(
-                      movie: movies[index],
-                      height: _deviceHeight * 0.2,
-                      width: _deviceWidth * 0.88),
-                ),
-              );
-            },
+    final List<MovieModel>? movies = _mainPageData.movies;
+    if (movies!.isNotEmpty) {
+      return ListView.builder(
+        itemCount: movies.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.symmetric(
+                vertical: _deviceHeight * 0.01, horizontal: 0),
+            child: GestureDetector(
+              onTap: () {},
+              child: MovieTile(
+                  movie: movies[index],
+                  height: _deviceHeight * 0.2,
+                  width: _deviceWidth * 0.88),
+            ),
           );
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(backgroundColor: Colors.white),
-          );
-        }
-      },
-    );
+        },
+      );
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(backgroundColor: Colors.white),
+      );
+    }
   }
 }
