@@ -7,11 +7,23 @@ import 'package:movies_app/Models/mainPageData.dart';
 import 'package:movies_app/Models/movieModel.dart';
 import 'package:movies_app/Widgets/movieTile.dart';
 
-// Declare global variable for the provider
+// Declare MainPageData provider
 final mainPageDataControllerProvider =
     StateNotifierProvider<MainPageDataController, MainPageData>(
   (ref) {
     return MainPageDataController();
+  },
+);
+// PosterURL provider
+final selectedMoviePosterURLProvider = StateProvider<String>(
+  (ref) {
+    //get movies
+    final movies =
+        ref.watch(mainPageDataControllerProvider).movies;
+    // set first value of PosterURL
+    return movies!.isNotEmpty
+        ? movies[0].posterURL()
+        : '';
   },
 );
 
@@ -21,16 +33,21 @@ class HomePage extends ConsumerWidget {
   late MainPageData _mainPageData;
   final TextEditingController _searchTextFieldController =
       TextEditingController();
+  late WidgetRef widgetRef;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     _deviceHeight = MediaQuery.of(context).size.height;
     _deviceWidth = MediaQuery.of(context).size.width;
-    // Get instance of MainPageDataController
+    // watch the instance of MainPageDataController
     _mainPageDataController =
         ref.watch(mainPageDataControllerProvider.notifier);
-    // Get instance of MainPageData
+    // watch the instance of MainPageData
     _mainPageData = ref.watch(mainPageDataControllerProvider);
+
+    // init the WidgetRef to use it in other Widgets
+    widgetRef = ref;
+
     return _buildUI();
   }
 
@@ -54,24 +71,32 @@ class HomePage extends ConsumerWidget {
   }
 
   Widget _backgroundWidget() {
-    return Container(
-      height: _deviceHeight,
-      width: _deviceWidth,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        image: DecorationImage(
-            image: NetworkImage(
-                "https://assets-prd.ignimgs.com/2022/07/21/oppenheimer-poster-1658411601593.jpeg?fit=bounds&width=1280&height=720"),
-            fit: BoxFit.fill),
-      ),
-      // Add Blur Filter For the Image
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-        child: Container(
-          color: Colors.black.withOpacity(0.4),
+    // read the state of Poster URL
+    final selectedPosterURl = widgetRef.watch(selectedMoviePosterURLProvider);
+    if (selectedPosterURl != '') {
+      return Container(
+        height: _deviceHeight,
+        width: _deviceWidth,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          image: DecorationImage(
+              image: NetworkImage(selectedPosterURl), fit: BoxFit.fill),
         ),
-      ),
-    );
+        // Add Blur Filter For the Image
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+          child: Container(
+            color: Colors.black.withOpacity(0.4),
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        height: _deviceHeight,
+        width: _deviceWidth,
+        color: Colors.black,
+      );
+    }
   }
 
   Widget _foregroundWidgets() {
@@ -173,21 +198,41 @@ class HomePage extends ConsumerWidget {
   Widget _moviesListViewWidget() {
     final List<MovieModel>? movies = _mainPageData.movies;
     if (movies!.isNotEmpty) {
-      return ListView.builder(
-        itemCount: movies.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.symmetric(
-                vertical: _deviceHeight * 0.01, horizontal: 0),
-            child: GestureDetector(
-              onTap: () {},
-              child: MovieTile(
-                  movie: movies[index],
-                  height: _deviceHeight * 0.2,
-                  width: _deviceWidth * 0.88),
-            ),
-          );
+      return NotificationListener(
+        // Active Infinite Scroll for getting more movies
+        onNotification: (onScrollNotification) {
+          if (onScrollNotification is ScrollEndNotification) {
+            final before = onScrollNotification.metrics.extentBefore;
+            final max = onScrollNotification.metrics.maxScrollExtent;
+            if (before == max) {
+              _mainPageDataController.getMovies();
+              return true;
+            }
+            return false;
+          }
+          return false;
         },
+        child: ListView.builder(
+          itemCount: movies.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                  vertical: _deviceHeight * 0.01, horizontal: 0),
+              child: GestureDetector(
+                onTap: () {
+                  // change the state of Poster URL
+                  widgetRef
+                      .read(selectedMoviePosterURLProvider.notifier)
+                      .state = movies[index].posterURL();
+                },
+                child: MovieTile(
+                    movie: movies[index],
+                    height: _deviceHeight * 0.2,
+                    width: _deviceWidth * 0.88),
+              ),
+            );
+          },
+        ),
       );
     } else {
       return const Center(

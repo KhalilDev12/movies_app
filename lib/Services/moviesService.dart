@@ -40,7 +40,6 @@ class MoviesService {
     });
     if (response.statusCode == 200) {
       Map data = response.data;
-      print(data['results']);
       // extract movies from data
       List<MovieModel> movies =
           data["results"].map<MovieModel>((movieData) {

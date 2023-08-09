@@ -62,4 +62,5 @@ class MainPageDataController extends StateNotifier<MainPageData> {
       print(e);
     }
   }
+
 }
